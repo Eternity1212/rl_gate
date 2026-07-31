@@ -1,0 +1,18 @@
+# B2: Posterior / P-GRPO style gating
+experiment:
+  name: baseline_p_grpo_1.5b
+  seed: 0
+model:
+  path: Qwen/Qwen2.5-Math-1.5B
+data:
+  train: DAPO-Math-17k
+  max_response_length: 2048
+algorithm:
+  name: grpo
+  group_size: 8
+triage:
+  method: p_grpo
+  process_scorer: rule
+trainer:
+  framework: verl
+  n_gpus: 4

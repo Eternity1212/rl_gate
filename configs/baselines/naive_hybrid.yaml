@@ -1,0 +1,19 @@
+# B6: naive hybrid / also use method prm_direct by editing triage.method
+experiment:
+  name: baseline_naive_hybrid_1.5b
+  seed: 0
+model:
+  path: Qwen/Qwen2.5-Math-1.5B
+data:
+  train: DAPO-Math-17k
+  max_response_length: 2048
+algorithm:
+  name: grpo
+  group_size: 8
+triage:
+  method: naive_hybrid
+  hybrid_lambda: 0.5
+  process_scorer: rule
+trainer:
+  framework: verl
+  n_gpus: 4
