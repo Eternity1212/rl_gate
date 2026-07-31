@@ -45,6 +45,13 @@
 
 ---
 
+## 远程仓库与同步
+
+- 仓库：https://github.com/Eternity1212/rl_gate
+- 安装提交后自动推送：`bash scripts/install_autosync_hook.sh`
+- 手动推送当前分支：`bash scripts/sync_to_github.sh`
+- 同时更新 GitHub `main`：`bash scripts/sync_to_github.sh --also-main`
+
 ## 快速开始（当前阶段：核心单元可测）
 
 ```bash

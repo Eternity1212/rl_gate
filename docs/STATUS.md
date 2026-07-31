@@ -2,9 +2,16 @@
 
 更新日期：2026-07-31
 
+## 远程仓库
+
+- GitHub：https://github.com/Eternity1212/rl_gate
+- `origin` 已配置；默认分支 `main`
+- 自动同步：运行 `bash scripts/install_autosync_hook.sh` 后，每次 `git commit` 会 push 当前分支
+- 手动同步：`bash scripts/sync_to_github.sh`（可选 `--also-main` 同步更新 main）
+
 ## 当前阶段
 
-**Phase A — Spec Coding（进行中）**
+**Phase A — Spec Coding（已完成）→ 下一步 Phase B**
 
 ## 已完成
 
