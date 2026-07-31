@@ -2,6 +2,9 @@
 
 版本：v0.1 — **配置已锁定，禁止无记录地更改。**
 
+**全部 run 清单与一键命令：** 见 [EXPERIMENT_MATRIX.md](EXPERIMENT_MATRIX.md) 与 [HOW_TO_RUN.md](HOW_TO_RUN.md)。  
+**机器注册表：** `configs/experiment_registry.yaml`（`./run.sh list` / `./run.sh matrix`）。
+
 ---
 
 ## 1. 目标投稿

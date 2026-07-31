@@ -17,6 +17,10 @@ dependencies = [
 dev = [
   "pytest>=7.4",
 ]
+download = [
+  "huggingface_hub>=0.23",
+  "datasets>=2.19",
+]
 
 [tool.setuptools]
 package-dir = {"" = "src"}

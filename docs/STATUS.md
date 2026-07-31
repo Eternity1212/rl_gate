@@ -6,34 +6,36 @@
 
 - GitHub：https://github.com/Eternity1212/rl_gate
 - `origin` 已配置；默认分支 `main`
-- 自动同步：运行 `bash scripts/install_autosync_hook.sh` 后，每次 `git commit` 会 push 当前分支
-- 手动同步：`bash scripts/sync_to_github.sh`（可选 `--also-main` 同步更新 main）
+- 自动同步：`bash scripts/install_autosync_hook.sh`
+- 手动同步：`bash scripts/sync_to_github.sh --also-main`
 
 ## 当前阶段
 
-**Phase A — Spec Coding（已完成）→ 下一步 Phase B**
+**Phase A 完成 + 实验编排/下载脚本完成 → 下一步 Phase B（veRL 真训练接线）**
 
 ## 已完成
 
-- [x] 项目初始化与 git  
-- [x] README / SPEC / EXPERIMENT_PLAN / RELATED_WORK / ROADMAP / API  
-- [x] 核心库：四格分类、优势、过滤、指标、基线 method  
-- [x] 配置 YAML 模板（主配置 + 6 基线）  
-- [x] 单元测试与手算脚本  
-- [x] veRL adapter 接口草稿（未接实机）  
+- [x] SPEC / 实验计划 / 相关工作文档  
+- [x] 核心 advantage 库 + 单测（12 passed）  
+- [x] **全部实验矩阵** `docs/EXPERIMENT_MATRIX.md`  
+- [x] **怎么跑** `docs/HOW_TO_RUN.md`  
+- [x] **一键入口** `./run.sh`  
+- [x] **一键下载** `scripts/download_assets.py`  
+- [x] **实验注册表** `configs/experiment_registry.yaml`  
+- [x] 消融配置 `configs/ablations/*`  
+- [x] matrix / summarize / smoke / contamination 脚本  
 
-## 进行中
+## 未完成（阻塞真·全流程 GPU 训练）
 
-- [ ] Phase B：veRL 实机接线与 ORM-GRPO 小步复现  
+- [ ] 安装并锁定 veRL 版本  
+- [ ] `scripts/verl_train_entry.py` 实机 GRPO 入口  
+- [ ] reward manager 写入 r_o/r_p/confidence  
+- [ ] 真实 eval harness 出分到 `outputs/tables/*.csv`  
 
-## 已知风险
-
-1. 神经 PRM 选择未最终钉死 → 主文选定前用 `rule` 跑通管线。  
-2. veRL 版本 API 可能漂移 → adapter 保持薄封装。  
-3. TRIAGE 被审稿视为「拼装」→ 消融必须完整。  
+当前可用：`./run.sh all --dry-run` 验证编排；`./run.sh download` 拉资产。
 
 ## 下次工作
 
-1. `pip install -e ".[dev]"` + `pytest`  
-2. 准备 GPU 环境与 DAPO-Math-17k  
-3. 实现数学 outcome reward 与 veRL hook  
+1. 在有 GPU 机器：`./run.sh download && ./run.sh verify-assets`  
+2. 接入 veRL trainer  
+3. 去掉 dry-run 跑 S2 smoke（200 steps）  

@@ -1,0 +1,20 @@
+# Ablation: gamma=0 (no W_LOW confidence penalty)
+experiment:
+  name: A4_no_lens
+  seed: 0
+model:
+  path: Qwen/Qwen2.5-Math-1.5B
+data:
+  train: DAPO-Math-17k
+algorithm:
+  name: grpo
+  group_size: 8
+triage:
+  method: triage
+  alpha: 1.0
+  gamma: 0.0
+  w_high_mode: filter
+  process_scorer: rule
+trainer:
+  framework: verl
+  n_gpus: 4

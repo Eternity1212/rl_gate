@@ -8,6 +8,8 @@ __pycache__/
 dist/
 build/
 data/
+assets/models/
+assets/data/
 outputs/
 checkpoints/
 wandb/

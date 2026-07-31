@@ -17,12 +17,21 @@
 
 ---
 
+## Phase A+ — 实验编排与下载（已完成）
+
+- [x] `docs/EXPERIMENT_MATRIX.md` 列清全部实验  
+- [x] `docs/HOW_TO_RUN.md` 写清怎么跑  
+- [x] `./run.sh` 一键入口  
+- [x] `./run.sh download` 一键下载模型/数据  
+- [x] `configs/experiment_registry.yaml` + matrix/summarize  
+
 ## Phase B — veRL 接入（Week 1–3）
 
-- [ ] 安装 veRL，拉取 DAPO-Math-17k  
+- [ ] 安装 veRL，拉取 DAPO-Math-17k（下载脚本已就绪）  
 - [ ] Outcome reward（数学答案核对）  
 - [ ] ProcessScorer（rule 先，prm 后）  
-- [ ] 自定义 advantage 钩子接入 GRPO  
+- [ ] 自定义 advantage 钩子接入 GRPO（`verl_adapter` 已预留）  
+- [ ] 实现 `scripts/verl_train_entry.py` 并去掉 dry-run  
 - [ ] 跑通 ORM-GRPO 小步（200 steps）  
 - [ ] 日志：四格占比  
 

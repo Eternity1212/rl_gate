@@ -1,0 +1,20 @@
+# Ablation: merge W↑/W↓ — apply LENS to all wrong (no W_HIGH filter)
+experiment:
+  name: A2_merge_wrong
+  seed: 0
+model:
+  path: Qwen/Qwen2.5-Math-1.5B
+data:
+  train: DAPO-Math-17k
+algorithm:
+  name: grpo
+  group_size: 8
+triage:
+  method: lens   # intentional: all-wrong confidence penalty only
+  gamma: 0.1
+  alpha: 1.0
+  process_scorer: rule
+  # note: also compare with papo+lens combo in analysis
+trainer:
+  framework: verl
+  n_gpus: 4

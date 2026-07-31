@@ -1,0 +1,206 @@
+# Machine-readable experiment registry for ./run.sh matrix
+# Each run: id, stage, method, config, seed, steps (null = full)
+
+defaults:
+  model: Qwen/Qwen2.5-Math-1.5B
+  train_data: BytedTsinghua-SIA/DAPO-Math-17k
+  group_size: 8
+  max_response_length: 2048
+  full_steps: 1000   # Phase C 可按算力调整；smoke 用 steps 覆盖
+
+assets:
+  model_1_5b: Qwen/Qwen2.5-Math-1.5B
+  model_7b: Qwen/Qwen2.5-Math-7B
+  train_dataset: BytedTsinghua-SIA/DAPO-Math-17k
+  train_dataset_alt: open-r1/DAPO-Math-17k-Processed
+  eval_datasets:
+    MATH-500: HuggingFaceH4/MATH-500
+    # 下列 ID 若失效，download 脚本会写入占位说明，需人工替换
+    AIME24: HuggingFaceH4/aime_2024
+    AIME25: MathArena/aime_2025
+    AMC23: math-ai/amc23
+    OlympiadBench: Hothan/OlympiadBench
+    MinervaMath: math-ai/minervamath
+
+stages:
+  smoke:
+    - id: S2.orm
+      method: orm_grpo
+      config: configs/baselines/orm_grpo.yaml
+      seed: 0
+      steps: 200
+    - id: S2.triage
+      method: triage
+      config: configs/triage_grpo_1.5b.yaml
+      seed: 0
+      steps: 200
+
+  main:
+    - id: B0.eval
+      method: base_eval
+      config: null
+      seed: 0
+      steps: 0
+    - id: B1.orm.s0
+      method: orm_grpo
+      config: configs/baselines/orm_grpo.yaml
+      seed: 0
+    - id: B1.orm.s1
+      method: orm_grpo
+      config: configs/baselines/orm_grpo.yaml
+      seed: 1
+    - id: B2.pgrpo.s0
+      method: p_grpo
+      config: configs/baselines/p_grpo.yaml
+      seed: 0
+    - id: B2.pgrpo.s1
+      method: p_grpo
+      config: configs/baselines/p_grpo.yaml
+      seed: 1
+    - id: B3.papo.s0
+      method: papo
+      config: configs/baselines/papo.yaml
+      seed: 0
+    - id: B3.papo.s1
+      method: papo
+      config: configs/baselines/papo.yaml
+      seed: 1
+    - id: B4.prof.s0
+      method: prof
+      config: configs/baselines/prof.yaml
+      seed: 0
+    - id: B4.prof.s1
+      method: prof
+      config: configs/baselines/prof.yaml
+      seed: 1
+    - id: B5.lens.s0
+      method: lens
+      config: configs/baselines/lens.yaml
+      seed: 0
+    - id: B5.lens.s1
+      method: lens
+      config: configs/baselines/lens.yaml
+      seed: 1
+    - id: B6.hybrid.s0
+      method: naive_hybrid
+      config: configs/baselines/naive_hybrid.yaml
+      seed: 0
+    - id: B6.hybrid.s1
+      method: naive_hybrid
+      config: configs/baselines/naive_hybrid.yaml
+      seed: 1
+    - id: B6.prm.s0
+      method: prm_direct
+      config: configs/baselines/naive_hybrid.yaml
+      seed: 0
+      overrides:
+        triage.method: prm_direct
+    - id: B6.prm.s1
+      method: prm_direct
+      config: configs/baselines/naive_hybrid.yaml
+      seed: 1
+      overrides:
+        triage.method: prm_direct
+    - id: Ours.triage.s0
+      method: triage
+      config: configs/triage_grpo_1.5b.yaml
+      seed: 0
+    - id: Ours.triage.s1
+      method: triage
+      config: configs/triage_grpo_1.5b.yaml
+      seed: 1
+
+  ablation:
+    - id: A1.no_ah
+      method: triage
+      config: configs/ablations/A1_no_ah.yaml
+      seed: 0
+    - id: A2.merge_wrong
+      method: triage
+      config: configs/ablations/A2_merge_wrong.yaml
+      seed: 0
+    - id: A3.merge_correct
+      method: triage
+      config: configs/ablations/A3_merge_correct.yaml
+      seed: 0
+    - id: A4.no_lens
+      method: triage
+      config: configs/ablations/A4_no_lens.yaml
+      seed: 0
+    - id: A5.no_filter
+      method: triage
+      config: configs/ablations/A5_no_filter.yaml
+      seed: 0
+    - id: A6.papo_only
+      method: papo
+      config: configs/baselines/papo.yaml
+      seed: 0
+
+  sensitivity:
+    - id: H.tau.0.3
+      method: triage
+      config: configs/triage_grpo_1.5b.yaml
+      seed: 0
+      overrides: { triage.tau: 0.3 }
+    - id: H.tau.0.5
+      method: triage
+      config: configs/triage_grpo_1.5b.yaml
+      seed: 0
+      overrides: { triage.tau: 0.5 }
+    - id: H.tau.0.7
+      method: triage
+      config: configs/triage_grpo_1.5b.yaml
+      seed: 0
+      overrides: { triage.tau: 0.7 }
+    - id: H.alpha.0.5
+      method: triage
+      config: configs/triage_grpo_1.5b.yaml
+      seed: 0
+      overrides: { triage.alpha: 0.5 }
+    - id: H.alpha.1.0
+      method: triage
+      config: configs/triage_grpo_1.5b.yaml
+      seed: 0
+      overrides: { triage.alpha: 1.0 }
+    - id: H.alpha.1.5
+      method: triage
+      config: configs/triage_grpo_1.5b.yaml
+      seed: 0
+      overrides: { triage.alpha: 1.5 }
+    - id: H.gamma.0.05
+      method: triage
+      config: configs/triage_grpo_1.5b.yaml
+      seed: 0
+      overrides: { triage.gamma: 0.05 }
+    - id: H.gamma.0.1
+      method: triage
+      config: configs/triage_grpo_1.5b.yaml
+      seed: 0
+      overrides: { triage.gamma: 0.1 }
+    - id: H.gamma.0.2
+      method: triage
+      config: configs/triage_grpo_1.5b.yaml
+      seed: 0
+      overrides: { triage.gamma: 0.2 }
+
+  extend:
+    - id: E.7b.orm
+      method: orm_grpo
+      config: configs/baselines/orm_grpo.yaml
+      seed: 0
+      overrides: { model.path: Qwen/Qwen2.5-Math-7B }
+    - id: E.7b.triage
+      method: triage
+      config: configs/triage_grpo_1.5b.yaml
+      seed: 0
+      overrides: { model.path: Qwen/Qwen2.5-Math-7B }
+    - id: E.rule_rp
+      method: triage
+      config: configs/triage_grpo_1.5b.yaml
+      seed: 0
+      overrides: { triage.process_scorer: rule }
+    - id: E.prm_rp
+      method: triage
+      config: configs/triage_grpo_1.5b.yaml
+      seed: 0
+      overrides: { triage.process_scorer: prm }
