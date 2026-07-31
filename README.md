@@ -37,6 +37,7 @@ source .venv/bin/activate
 |------|------|
 | [docs/HOW_TO_RUN.md](docs/HOW_TO_RUN.md) | **怎么运行（优先读）** |
 | [docs/EXPERIMENT_MATRIX.md](docs/EXPERIMENT_MATRIX.md) | **所有要跑的实验** |
+| [docs/ASSETS.md](docs/ASSETS.md) | **模型/数据 ID 与磁盘占用** |
 | [docs/SPEC.md](docs/SPEC.md) | 方法公式与四格算子 |
 | [docs/EXPERIMENT_PLAN.md](docs/EXPERIMENT_PLAN.md) | 锁定模型/数据/成功标准 |
 | [docs/RELATED_WORK.md](docs/RELATED_WORK.md) | 与 PAPO/P-GRPO/PROF/LENS 差异 |

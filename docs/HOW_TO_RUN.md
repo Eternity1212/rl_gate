@@ -43,11 +43,19 @@ source .venv/bin/activate
 
 ## 2. 一键下载模型 / 数据集
 
+**完整 ID、是否必须、磁盘占用：** 见 [ASSETS.md](ASSETS.md)。
+
+| 场景 | 大约占磁盘 |
+|------|------------|
+| 1.5B + 训练 + 评测（主文最低） | **10–15 GB**（含 HF 缓存余量） |
+| 再加 7B | **30–40 GB** |
+| 真训练 checkpoint（另计） | **+50–200 GB** 视保存策略 |
+
 ```bash
 # 默认：Qwen2.5-Math-1.5B + DAPO-Math-17k + 6 个评测集
 ./run.sh download
 
-# 同时下 7B
+# 同时下 7B（约再加 15 GB）
 ./run.sh download --with-7b
 
 # 校验

@@ -19,9 +19,11 @@
 一键下载：
 
 ```bash
-./run.sh download          # 1.5B + 训练数据 + 评测数据
+./run.sh download          # 1.5B + 训练数据 + 评测数据（约 10–15 GB 含缓存）
 ./run.sh download --with-7b
 ```
+
+磁盘与 HF ID 细节：[ASSETS.md](ASSETS.md)。
 
 ---
 
