@@ -1,9 +1,10 @@
 # 实验计划（锁定）
 
-版本：v0.1 — **配置已锁定，禁止无记录地更改。**
+版本：v0.2 — **下列科学方向已锁定，禁止无记录地更改。**
 
 **全部 run 清单与一键命令：** 见 [EXPERIMENT_MATRIX.md](EXPERIMENT_MATRIX.md) 与 [HOW_TO_RUN.md](HOW_TO_RUN.md)。  
-**机器注册表：** `configs/experiment_registry.yaml`（`./run.sh list` / `./run.sh matrix`）。
+**机器注册表：** `configs/experiment_registry.yaml`（`./run.sh list` / `./run.sh matrix`）。  
+**H100 用量 / LoRA 能否发论文：** 见 [COMPUTE_BUDGET.md](COMPUTE_BUDGET.md)。
 
 ---
 
@@ -14,21 +15,25 @@
 
 ---
 
-## 2. 锁定资源
+## 2. 锁定方向（勿改）
+
+| 项 | 锁定选择 |
+|----|----------|
+| 方法 | **TRIAGE-GRPO**（**不是** GatePO） |
+| 模型 | **Qwen2.5-Math-1.5B**（主）；7B 仅可选扩展 |
+| 数据 | **DAPO-Math-17k** |
+| 评测 | **MATH-500 / AMC23 / AIME24 / AIME25 / OlympiadBench / MinervaMath** |
+| 框架 | **veRL + GRPO**（G=8） |
+
+### 2.1 训练细节（可在 STATUS 记录后微调，但不得换上表五项）
 
 | 项 | 值 |
 |----|-----|
-| 主模型 | `Qwen/Qwen2.5-Math-1.5B` |
-| 扩展模型 | `Qwen/Qwen2.5-Math-7B`（Phase C） |
-| 训练数据 | DAPO-Math-17k（仅含整数答案数学题） |
-| 评测 | MATH-500, AMC23, AIME24, AIME25, OlympiadBench, MinervaMath |
-| 框架 | veRL |
-| 算法骨架 | GRPO |
-| Group size \(G\) | 8 |
 | Max new tokens | 2048（显存不足可改为 1536，需记 STATUS） |
-| 硬件 | 4×A100 80G（1.5B）；7B 用 8 卡 |
+| 硬件（全参档） | 4×H100/A100 80G（1.5B）；7B 全参约 8 卡 |
+| 硬件（省算力档） | **2×H100/A100 80G + LoRA**（见 COMPUTE_BUDGET；主文基线须同一档） |
 | Seeds | 2（主表）；关键结论补第 3 个 |
-| 过程分 | 主文固定一种 PRM；附录 rule |
+| 过程分 | 主文固定一种（规则或小 PRM 二选一写死）；附录可报另一种 |
 
 ---
 
