@@ -15,6 +15,18 @@ triage:
   alpha: 1.0
   tau: 0.5
   process_scorer: rule
+lora:
+  enabled: true
+  r: 64
+  alpha: 128
+  dropout: 0.05
+  bias: none
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+
 trainer:
   framework: verl
-  n_gpus: 4
+  n_gpus: 2

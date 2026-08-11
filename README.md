@@ -38,7 +38,8 @@ source .venv/bin/activate
 | [docs/HOW_TO_RUN.md](docs/HOW_TO_RUN.md) | **怎么运行（优先读）** |
 | [docs/EXPERIMENT_MATRIX.md](docs/EXPERIMENT_MATRIX.md) | **所有要跑的实验** |
 | [docs/ASSETS.md](docs/ASSETS.md) | **模型/数据 ID 与磁盘占用** |
-| [docs/COMPUTE_BUDGET.md](docs/COMPUTE_BUDGET.md) | **H100 卡时估算与 LoRA 能否发论文** |
+| [docs/LORA_EXPERIMENTS.md](docs/LORA_EXPERIMENTS.md) | **LoRA \(r=64\) 主文设定、对比与论文影响** |
+| [docs/COMPUTE_BUDGET.md](docs/COMPUTE_BUDGET.md) | **H100 卡时估算** |
 | [docs/SPEC.md](docs/SPEC.md) | 方法公式与四格算子 |
 | [docs/EXPERIMENT_PLAN.md](docs/EXPERIMENT_PLAN.md) | 锁定模型/数据/成功标准 |
 | [docs/RELATED_WORK.md](docs/RELATED_WORK.md) | 与 PAPO/P-GRPO/PROF/LENS 差异 |
@@ -70,6 +71,7 @@ source .venv/bin/activate
 - **训练数据**：`DAPO-Math-17k`
 - **评测**：MATH-500, AMC23, AIME24, AIME25, OlympiadBench, MinervaMath
 - **框架**：veRL + GRPO（G=8）
+- **适配（主文）**：**LoRA \(r=64\)，\(\alpha=128\)，2×H100/A100**（所有对比方法相同）
 - **主文必跑**：S0+S1+S2+S3(main)+S4(ablation) ≈ 33 runs（详见矩阵文档）
 
 ---
@@ -79,6 +81,7 @@ source .venv/bin/activate
 | 项 | 状态 |
 |----|------|
 | 实验是否列清 | ✅ |
+| 主文 LoRA \(r=64\) / 2 GPU | ✅ 已写入全部 train yaml |
 | 一键下载 | ✅ `./run.sh download` |
 | 一键编排 | ✅ `./run.sh all` |
 | 核心库单测 | ✅ |

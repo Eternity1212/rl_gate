@@ -79,7 +79,15 @@ GatePO ≈ PAPO 的解耦 + P-GRPO 的门控 + 额外 \(A_h\)。
 
 ---
 
-## 5. 一句话给自己
+## 5. LoRA 与创新点的关系（主文已锁定 \(r=64\)）
+
+- LoRA **不是**本文贡献；是 **公平、省算力的训练设定**。  
+- 创新仍在 TRIAGE 四格算子；全文方法必须同一 \(r\)。  
+- 详见 [LORA_EXPERIMENTS.md](LORA_EXPERIMENTS.md)。
+
+---
+
+## 6. 一句话给自己
 
 创新点 **够投 AAAI/Findings 方法文**，前提是把 **PAPO/PROF/P-GRPO/LENS 同设定打穿 + 消融 + hack 指标**；  
 若还想冲更高会：补 PROGRS 与 7B，并把「可预测的一致性格子待遇」讲成清晰科学问题，而不是拼装配方。

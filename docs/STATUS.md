@@ -1,6 +1,6 @@
 # 项目状态
 
-更新日期：2026-08-07
+更新日期：2026-08-11
 
 ## 远程仓库
 
@@ -25,6 +25,8 @@
 - [x] 消融配置 `configs/ablations/*`  
 - [x] matrix / summarize / smoke / contamination 脚本  
 - [x] 算力预算 `docs/COMPUTE_BUDGET.md`（H100·h + LoRA 论文可行性）  
+- [x] **主文锁定 LoRA \(r=64\)**：`docs/LORA_EXPERIMENTS.md` + 全部 train yaml / registry  
+
 
 ## 未完成（阻塞真·全流程 GPU 训练）
 

@@ -1,0 +1,25 @@
+# Locked LoRA defaults for ALL main/ablation/baseline runs (fair compare).
+# Include or copy into each train yaml. See docs/LORA_EXPERIMENTS.md.
+#
+# DO NOT change r / alpha mid-paper without recording in STATUS.md.
+
+lora:
+  enabled: true
+  r: 64                 # locked main-paper rank
+  alpha: 128            # = 2 * r
+  dropout: 0.05
+  bias: none
+  task_type: CAUSAL_LM
+  # Qwen2 attention projections (veRL/PEFT module names)
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+  # Optional capacity boost (not default; enable only for appendix):
+  # - gate_proj
+  # - up_proj
+  # - down_proj
+
+trainer_hardware:
+  n_gpus: 2             # matched to 2×H100 / 2×A100 80GB + LoRA

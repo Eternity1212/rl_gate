@@ -31,9 +31,21 @@ triage:
   process_scorer: rule  # rule | prm  (switch to prm after scorer is pinned)
   # prm_model: REPLACE_WITH_FIXED_PRM
 
+lora:
+  enabled: true
+  r: 64
+  alpha: 128
+  dropout: 0.05
+  bias: none
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+
 trainer:
   framework: verl
-  n_gpus: 4
+  n_gpus: 2
   total_epochs: 1          # raise for full runs in Phase C
   save_freq: 50
   logging:

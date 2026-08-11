@@ -1,8 +1,9 @@
 # 全部实验清单（必须跑完才算主文齐）
 
-版本：v0.1  
+版本：v0.2  
 原则：**一个实验 = 一个 run_id = 一份配置 = 一个输出目录**。  
-执行入口：`./run.sh`（见 [HOW_TO_RUN.md](HOW_TO_RUN.md)）。
+执行入口：`./run.sh`（见 [HOW_TO_RUN.md](HOW_TO_RUN.md)）。  
+**训练适配（锁定）：LoRA \(r=64\)，\(\alpha=128\)，2×GPU — 全部主对比/消融相同。** 详见 [LORA_EXPERIMENTS.md](LORA_EXPERIMENTS.md)。
 
 ---
 

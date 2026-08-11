@@ -7,6 +7,13 @@ defaults:
   group_size: 8
   max_response_length: 2048
   full_steps: 1000   # Phase C 可按算力调整；smoke 用 steps 覆盖
+  n_gpus: 2
+  lora:
+    enabled: true
+    r: 64
+    alpha: 128
+    dropout: 0.05
+    target_modules: [q_proj, k_proj, v_proj, o_proj]
 
 assets:
   model_1_5b: Qwen/Qwen2.5-Math-1.5B

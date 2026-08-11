@@ -10,6 +10,7 @@
 | 能力 | 状态 |
 |------|------|
 | 实验清单是否列清 | ✅ `docs/EXPERIMENT_MATRIX.md` + `configs/experiment_registry.yaml` |
+| 主文 LoRA 设定 | ✅ **\(r=64\)**，2 GPU；见 [LORA_EXPERIMENTS.md](LORA_EXPERIMENTS.md) |
 | 一键单测 / 四格冒烟 | ✅ `./run.sh unit` 等 |
 | 一键下载模型与数据 | ✅ `./run.sh download`（需网络与 HF 访问） |
 | 一键编排全部实验 | ✅ `./run.sh all` / `./run.sh matrix --stage ...` |

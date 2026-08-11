@@ -1,10 +1,11 @@
 # 实验计划（锁定）
 
-版本：v0.2 — **下列科学方向已锁定，禁止无记录地更改。**
+版本：v0.3 — **下列科学方向已锁定，禁止无记录地更改。**
 
 **全部 run 清单与一键命令：** 见 [EXPERIMENT_MATRIX.md](EXPERIMENT_MATRIX.md) 与 [HOW_TO_RUN.md](HOW_TO_RUN.md)。  
 **机器注册表：** `configs/experiment_registry.yaml`（`./run.sh list` / `./run.sh matrix`）。  
-**H100 用量 / LoRA 能否发论文：** 见 [COMPUTE_BUDGET.md](COMPUTE_BUDGET.md)。
+**LoRA 主文设定（\(r=64\)）与论文影响：** 见 [LORA_EXPERIMENTS.md](LORA_EXPERIMENTS.md)。  
+**H100 用量：** 见 [COMPUTE_BUDGET.md](COMPUTE_BUDGET.md)。
 
 ---
 
@@ -25,15 +26,16 @@
 | 评测 | **MATH-500 / AMC23 / AIME24 / AIME25 / OlympiadBench / MinervaMath** |
 | 框架 | **veRL + GRPO**（G=8） |
 
-### 2.1 训练细节（可在 STATUS 记录后微调，但不得换上表五项）
+### 2.1 训练细节（主文已锁定 LoRA）
 
 | 项 | 值 |
 |----|-----|
+| **适配** | **LoRA，\(r=64\)，\(\alpha=128\)，target=q/k/v/o**（全部方法相同） |
+| 硬件 | **2×H100/A100 80GB** |
 | Max new tokens | 2048（显存不足可改为 1536，需记 STATUS） |
-| 硬件（全参档） | 4×H100/A100 80G（1.5B）；7B 全参约 8 卡 |
-| 硬件（省算力档） | **2×H100/A100 80G + LoRA**（见 COMPUTE_BUDGET；主文基线须同一档） |
 | Seeds | 2（主表）；关键结论补第 3 个 |
 | 过程分 | 主文固定一种（规则或小 PRM 二选一写死）；附录可报另一种 |
+| 全参 | **非主文默认**；仅附录可选 `L.ft.*` 核对（见 LORA_EXPERIMENTS） |
 
 ---
 
