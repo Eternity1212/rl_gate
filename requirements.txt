@@ -1,0 +1,8 @@
+# TRIAGE-GRPO core + download + tests
+# Install: pip install -r requirements.txt && pip install -e .
+
+numpy>=1.24
+pyyaml>=6.0
+pytest>=7.4
+huggingface_hub>=0.23
+datasets>=2.19
