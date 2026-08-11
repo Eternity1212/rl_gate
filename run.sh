@@ -1,41 +1,66 @@
 #!/usr/bin/env bash
 # TRIAGE-GRPO one-entry launcher
 # Usage: ./run.sh <command> [args...]
+#
+# Uses system python/pip by default (no .venv required).
+# Optional: TRIAGE_USE_VENV=1  → prefer ./.venv if it exists and is complete
+# Optional: TRIAGE_SKIP_ENSURE=1 → do not auto pip install on each command
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$ROOT"
 
-PY="${ROOT}/.venv/bin/python"
-if [[ ! -x "${PY}" ]]; then
-  PY="$(command -v python3)"
-fi
-
-cmd="${1:-help}"
-shift || true
-
-ensure_dev() {
-  if [[ -x "${ROOT}/.venv/bin/python" ]]; then
-    "${ROOT}/.venv/bin/pip" install -e ".[dev]" -q
-  else
-    "${PY}" -m pip install -e ".[dev]" -q
+resolve_python() {
+  if [[ "${TRIAGE_USE_VENV:-0}" == "1" && -x "${ROOT}/.venv/bin/python" ]]; then
+    echo "${ROOT}/.venv/bin/python"
+    return
   fi
+  if command -v python3 >/dev/null 2>&1; then
+    command -v python3
+    return
+  fi
+  if command -v python >/dev/null 2>&1; then
+    command -v python
+    return
+  fi
+  echo "ERROR: python3/python not found in PATH" >&2
+  exit 1
 }
 
-case "${cmd}" in
-  help|-h|--help)
-    cat <<'EOF'
-TRIAGE-GRPO runner
+PY="$(resolve_python)"
 
-Setup / checks (no GPU):
-  ./run.sh setup                 # create venv + install package
+pip_install() {
+  # Always go through "python -m pip" (works without .venv/bin/pip)
+  "${PY}" -m pip install "$@"
+}
+
+ensure_dev() {
+  if [[ "${TRIAGE_SKIP_ENSURE:-0}" == "1" ]]; then
+    return 0
+  fi
+  # Quiet reinstall of package extras; safe if user already pip-installed deps
+  pip_install -e ".[dev,download]" -q
+}
+
+case "${1:-help}" in
+  help|-h|--help)
+    shift || true
+    cat <<'EOF'
+TRIAGE-GRPO runner (system python OK — no .venv required)
+
+Env:
+  TRIAGE_SKIP_ENSURE=1   skip auto pip on each command (if you already pip installed)
+  TRIAGE_USE_VENV=1      prefer ./.venv/bin/python when present
+
+Setup / checks:
+  ./run.sh setup                 # pip install -e ".[dev,download]" into CURRENT python
   ./run.sh unit                  # pytest
-  ./run.sh check-advantage       # hand-check advantages
-  ./run.sh smoke-cells           # synthetic 2x2 cell stats
-  ./run.sh list                  # list all experiment run_ids
+  ./run.sh check-advantage
+  ./run.sh smoke-cells
+  ./run.sh list
 
 Download:
-  ./run.sh download              # model 1.5B + DAPO-Math-17k + eval sets
+  ./run.sh download
   ./run.sh download --with-7b
   ./run.sh verify-assets
   ./run.sh check-contamination
@@ -49,58 +74,59 @@ Train / matrix:
   ./run.sh summarize
 
 Full pipeline:
-  ./run.sh all                   # unit + download + verify + smoke + main + ablation + summarize
-  ./run.sh all --dry-run         # same orchestration without real GPU train
+  ./run.sh all
+  ./run.sh all --dry-run
   ./run.sh all --with-sensitivity
   ./run.sh all --with-extend
-
-Docs:
-  docs/HOW_TO_RUN.md
-  docs/EXPERIMENT_MATRIX.md
 EOF
     ;;
 
   setup)
-    if [[ ! -d .venv ]]; then
-      python3 -m venv .venv
-    fi
-    # shellcheck disable=SC1091
-    source .venv/bin/activate
-    pip install -U pip setuptools wheel -q
-    pip install -e ".[dev,download]" -q
-    echo "Setup OK. Activate with: source .venv/bin/activate"
+    shift || true
+    "${PY}" -m pip install -U pip setuptools wheel -q
+    pip_install -e ".[dev,download]" -q
+    echo "Setup OK."
+    echo "Python: ${PY}"
+    echo "No venv activation needed if you install into this interpreter."
     ;;
 
   unit)
+    shift || true
     ensure_dev
     "${PY}" -m pytest -q
     ;;
 
   check-advantage)
+    shift || true
     ensure_dev
     "${PY}" scripts/unit_check_advantage.py
     ;;
 
   smoke-cells)
+    shift || true
     ensure_dev
     "${PY}" scripts/smoke_cells.py
     ;;
 
   download)
+    shift || true
     ensure_dev
-    "${PY}" -m pip install -q huggingface_hub datasets
+    pip_install -q huggingface_hub datasets
     "${PY}" scripts/download_assets.py "$@"
     ;;
 
   verify-assets)
+    shift || true
     "${PY}" scripts/verify_assets.py
     ;;
 
   check-contamination)
+    shift || true
     "${PY}" scripts/check_contamination.py
     ;;
 
   list)
+    shift || true
     "${PY}" - <<'PY'
 import yaml
 from pathlib import Path
@@ -113,21 +139,25 @@ PY
     ;;
 
   train)
+    shift || true
     ensure_dev
     "${PY}" scripts/run_train.py "$@"
     ;;
 
   matrix)
+    shift || true
     ensure_dev
     "${PY}" scripts/run_matrix.py "$@"
     ;;
 
   summarize)
+    shift || true
     ensure_dev
     "${PY}" scripts/summarize_results.py
     ;;
 
   all)
+    shift || true
     DRY=()
     EXTRA_SENS=0
     EXTRA_EXT=0
@@ -140,8 +170,6 @@ PY
       esac
     done
     ./run.sh setup
-    # shellcheck disable=SC1091
-    source .venv/bin/activate
     ./run.sh unit
     ./run.sh check-advantage
     ./run.sh smoke-cells
@@ -162,7 +190,7 @@ PY
     ;;
 
   *)
-    echo "Unknown command: ${cmd}"
+    echo "Unknown command: ${1:-}"
     echo "Run: ./run.sh help"
     exit 2
     ;;

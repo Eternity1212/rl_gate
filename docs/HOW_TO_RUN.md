@@ -24,12 +24,16 @@
 ## 1. 第一次使用（5 分钟）
 
 ```bash
-cd /Users/bytedance/projects/triage-grpo
+cd /path/to/rl_gate
 
-# 1) 环境
+# 1) 环境（不需要 .venv；直接用当前 python）
 chmod +x run.sh
-./run.sh setup
-source .venv/bin/activate
+pip install -r requirements.txt
+pip install -e .
+# 或：./run.sh setup
+
+# 若你已手动 pip 装好，后面命令可加：
+# export TRIAGE_SKIP_ENSURE=1
 
 # 2) 无 GPU 自检
 ./run.sh unit
