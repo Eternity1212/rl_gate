@@ -1,6 +1,6 @@
 # 项目状态
 
-更新日期：2026-08-11
+更新日期：2026-08-12
 
 ## 远程仓库
 
@@ -11,7 +11,14 @@
 
 ## 当前阶段
 
-**Phase A 完成 + 实验编排/下载脚本完成 → 下一步 Phase B（veRL 真训练接线）**
+**训练塌缩诊断（2026-08-12）→ 暂停扩跑矩阵，优先修 trainer**
+
+集群上已完成部分 full run（如 B1.orm.s1、Ours.triage.s0），但对 final checkpoint 抽样生成发现：
+- 空输出 / `WHY WHY WHY` 重复 / 无 `\boxed{}`
+- `mean_outcome≈0` 是因为**模型生成已崩**，不是 reward 误判
+- **现有 completed run 不能当论文有效结果**；须先修 GRPO/TRL 训练实现（KL/reference、loss、decode），再重跑
+
+本仓库 `main` 仍主要为 Phase A + dry-run 编排；集群上的 `trl_train_entry.py` 若未合入，需审查后重写再同步。
 
 ## 已完成
 
