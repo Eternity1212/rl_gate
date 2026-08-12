@@ -43,12 +43,26 @@ TRIAGE **公式库仍可用**；塌缩说明 **训练引擎不可信**，不是�
 
 ---
 
-## 修复入口（2026-08-12）
+## 修复入口（2026-08-12，含 3.9 兼容）
 
-仓库已新增/重写：
+报错 `unsupported operand type(s) for |` = **Python 3.9 无法 import 新版 trl/transformers 的 GRPOTrainer**。
 
-- `scripts/trl_train_entry.py` — 基于官方 **`trl.GRPOTrainer`**
-- `scripts/run_train.py` — 优先调用上述入口（不再依赖未接线 veRL）
+仓库已改为：
+
+- `scripts/trl_train_entry.py` — 自动选择后端  
+  - **Python &lt; 3.10** → `triage_grpo.grpo39_trainer`（transformers+peft+KL，不 import trl.GRPOTrainer）  
+  - **Python ≥ 3.10** 且 TRL 可用 → 官方 `trl.GRPOTrainer`  
+- `src/triage_grpo/grpo39_trainer.py` — 3.9 安全 GRPO 实现  
+- `scripts/run_train.py` — 在 3.9 上强制 `TRIAGE_FORCE_GRPO39=1`
+
+集群（3.9）请：
+
+```bash
+export TRIAGE_FORCE_GRPO39=1   # 可选，3.9 会自动开
+pip install -r requirements.txt   # 注意：transformers<4.57
+pip install -e .
+./run.sh train --run S2.orm --steps 50
+```
 
 ### 抗塌缩默认
 

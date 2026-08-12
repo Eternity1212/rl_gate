@@ -8,7 +8,11 @@ Design goals
 2. Keep TRIAGE/baseline *reward shaping* in-repo via ``triage_grpo``.
 3. Fail fast if generations degenerate (empty / high repetition).
 
-Python: 3.9+ (TRL path). veRL is optional and not required here.
+Python:
+  - 3.10+ : try official trl.GRPOTrainer
+  - 3.9   : automatic fallback to ``triage_grpo.grpo39_trainer`` (no trl.GRPOTrainer)
+
+Force 3.9 path anytime with: ``export TRIAGE_FORCE_GRPO39=1``
 """
 
 from __future__ import annotations
@@ -37,6 +41,20 @@ from triage_grpo.rewards.outcome import score_outcome_exact  # noqa: E402
 from triage_grpo.rewards.rule_process import RuleProcessScorer  # noqa: E402
 from triage_grpo.types import GroupInput  # noqa: E402
 from triage_grpo.verl_adapter import TriageConfig  # noqa: E402
+
+
+def _prefer_grpo39() -> bool:
+    if os.environ.get("TRIAGE_FORCE_GRPO39") == "1":
+        return True
+    if sys.version_info < (3, 10):
+        return True
+    # Probe TRL GRPO import (fails on py3.9 with newer transformers/trl)
+    try:
+        from trl import GRPOTrainer  # noqa: F401
+        return False
+    except Exception as e:
+        print(f"[warn] trl.GRPOTrainer unavailable ({e}); using grpo39 backend", flush=True)
+        return True
 
 
 def _utc() -> str:
@@ -368,35 +386,73 @@ def run_training(
             "target_modules": ["q_proj", "k_proj", "v_proj", "o_proj"],
         },
         "triage": asdict(triage_cfg),
-        "trainer_backend": "trl.GRPOTrainer",
+        "trainer_backend": "auto",
         "anti_collapse": {
             "kl_beta": float(os.environ.get("TRIAGE_KL_BETA", "0.04")),
             "learning_rate": float(os.environ.get("TRIAGE_LR", "1.0e-6")),
             "degeneracy_abort": True,
         },
         "created_at": _utc(),
+        "python": "{}.{}.{}".format(*sys.version_info[:3]),
     }
-    (out_dir / "resolved_config.yaml").write_text(
-        yaml.safe_dump(resolved, sort_keys=False, allow_unicode=True),
-        encoding="utf-8",
-    )
 
-    # Imports that need the training env
+    max_samples = int(os.environ.get("TRIAGE_MAX_SAMPLES", "0")) or None
+    if smoke and max_samples is None:
+        max_samples = 256
+    records = load_train_records(max_samples=max_samples)
+    model_name = resolved["model"]
+    lora_cfg = resolved["lora"]
+    max_completion = int(
+        _deep_get(cfg, "data", "max_response_length", default=1024) or 1024
+    )
+    max_completion = int(os.environ.get("TRIAGE_MAX_COMPLETION", str(min(max_completion, 1024))))
+    group_size = int(_deep_get(cfg, "algorithm", "group_size", default=8) or 8)
+
+    # -------- Python 3.9 / incompatible TRL: local GRPO --------
+    if _prefer_grpo39():
+        from triage_grpo.grpo39_trainer import run_grpo39
+
+        resolved["trainer_backend"] = "grpo39_transformers_peft"
+        (out_dir / "resolved_config.yaml").write_text(
+            yaml.safe_dump(resolved, sort_keys=False, allow_unicode=True),
+            encoding="utf-8",
+        )
+        print(
+            "[info] Using grpo39 backend (Python 3.9-safe; no trl.GRPOTrainer).",
+            flush=True,
+        )
+        return run_grpo39(
+            run_id=run_id,
+            root=ROOT,
+            model_name=model_name,
+            records=records,
+            triage_cfg=triage_cfg,
+            method=triage_cfg.method,
+            seed=seed,
+            steps=steps,
+            lora=lora_cfg,
+            smoke=smoke,
+            max_completion=max_completion,
+            group_size=group_size,
+        )
+
+    # -------- Python 3.10+ : official TRL --------
     import torch
     from datasets import Dataset
     from peft import LoraConfig
     from transformers import AutoModelForCausalLM, AutoTokenizer, set_seed
     from trl import GRPOConfig, GRPOTrainer
 
+    resolved["trainer_backend"] = "trl.GRPOTrainer"
+    (out_dir / "resolved_config.yaml").write_text(
+        yaml.safe_dump(resolved, sort_keys=False, allow_unicode=True),
+        encoding="utf-8",
+    )
+
     set_seed(seed)
-    max_samples = int(os.environ.get("TRIAGE_MAX_SAMPLES", "0")) or None
-    if smoke and max_samples is None:
-        max_samples = 256
-    records = load_train_records(max_samples=max_samples)
     gold_by_prompt = {r["prompt"]: r["answer"] for r in records}
     train_ds = Dataset.from_list([{"prompt": r["prompt"]} for r in records])
 
-    model_name = resolved["model"]
     tok = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token
@@ -407,7 +463,6 @@ def run_training(
         trust_remote_code=True,
     )
 
-    lora_cfg = resolved["lora"]
     peft_config = None
     if lora_cfg.get("enabled", True):
         peft_config = LoraConfig(
@@ -423,19 +478,11 @@ def run_training(
         )
 
     n_gpus = int(_deep_get(cfg, "trainer", "n_gpus", default=1) or 1)
-    max_completion = int(
-        _deep_get(cfg, "data", "max_response_length", default=1024) or 1024
-    )
-    # Prefer shorter completions while stabilizing — override via env
-    max_completion = int(os.environ.get("TRIAGE_MAX_COMPLETION", str(max_completion)))
-    group_size = int(_deep_get(cfg, "algorithm", "group_size", default=8) or 8)
-
     monitor = DegeneracyMonitor(window=64, bad_frac=0.6)
     reward_fn = build_reward_fn(
         triage_cfg.method, triage_cfg, gold_by_prompt, monitor, metrics_path
     )
 
-    # Build GRPOConfig defensively across TRL versions
     cfg_kwargs = dict(
         output_dir=str(ckpt_root),
         seed=seed,
@@ -454,10 +501,9 @@ def run_training(
         bf16=bool(torch.cuda.is_available()),
         remove_unused_columns=False,
     )
-    # Optional fields (ignored if unsupported)
     for k, v in (
         ("max_prompt_length", int(_deep_get(cfg, "data", "max_prompt_length", default=1024) or 1024)),
-        ("scale_rewards", False),  # we already shape rewards/advantages
+        ("scale_rewards", False),
     ):
         cfg_kwargs[k] = v
     try:
@@ -480,14 +526,12 @@ def run_training(
         trainer = GRPOTrainer(tokenizer=tok, **trainer_kwargs)
 
     train_result = trainer.train()
-    # save final + best-ish (TRL last)
     final_dir = ckpt_root / "final"
     best_dir = ckpt_root / "best"
     trainer.save_model(str(final_dir))
     if best_dir.exists():
         shutil.rmtree(best_dir, ignore_errors=True)
     shutil.copytree(final_dir, best_dir)
-    # also snapshot step name
     step_snap = ckpt_root / f"ckpt-step-{int(steps):06d}"
     if step_snap.exists():
         shutil.rmtree(step_snap, ignore_errors=True)
@@ -495,7 +539,6 @@ def run_training(
     retain_checkpoints(ckpt_root, keep_steps=1)
 
     if smoke:
-        # smoke: delete checkpoints to save disk
         shutil.rmtree(ckpt_root, ignore_errors=True)
         ckpt_root.mkdir(parents=True, exist_ok=True)
         (ckpt_root / "SMOKE_CHECKPOINTS_DELETED.txt").write_text(

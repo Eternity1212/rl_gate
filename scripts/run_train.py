@@ -83,16 +83,16 @@ def main() -> int:
         print(f"Wrote {job_path}")
         return 0
 
-    # Probe TRL
+    # Need torch + transformers + peft. TRL is optional (3.9 uses grpo39).
     try:
-        import trl  # noqa: F401
         import torch  # noqa: F401
         import peft  # noqa: F401
+        import transformers  # noqa: F401
     except Exception as e:
         job["status"] = "error"
         job["message"] = (
-            f"TRL stack not importable ({e}). "
-            "pip install torch transformers trl peft accelerate datasets"
+            f"torch/transformers/peft not importable ({e}). "
+            "pip install -r requirements.txt && pip install -e ."
         )
         job_path.write_text(json.dumps(job, indent=2, ensure_ascii=False), encoding="utf-8")
         print(json.dumps(job, indent=2, ensure_ascii=False))
@@ -100,6 +100,10 @@ def main() -> int:
 
     smoke = str(run.get("stage")) == "smoke" or int(steps) <= 200
     cfg = run.get("config") or "configs/triage_grpo_1.5b.yaml"
+    # On Python < 3.10, force grpo39 to avoid trl `|` annotation crash
+    env = os.environ.copy()
+    if sys.version_info < (3, 10):
+        env["TRIAGE_FORCE_GRPO39"] = "1"
     cmd = [
         sys.executable,
         str(ROOT / "scripts" / "trl_train_entry.py"),
@@ -121,9 +125,11 @@ def main() -> int:
 
     job["status"] = "running"
     job["command"] = cmd
+    job["backend"] = "grpo39_or_trl_auto"
     job_path.write_text(json.dumps(job, indent=2, ensure_ascii=False), encoding="utf-8")
     print("Launching:", " ".join(cmd), flush=True)
-    proc = subprocess.run(cmd, cwd=str(ROOT))
+    print("Python:", sys.version, "TRIAGE_FORCE_GRPO39=", env.get("TRIAGE_FORCE_GRPO39"), flush=True)
+    proc = subprocess.run(cmd, cwd=str(ROOT), env=env)
     job["status"] = "finished" if proc.returncode == 0 else "error"
     job["returncode"] = proc.returncode
     job["finished_at"] = datetime.now(timezone.utc).isoformat()

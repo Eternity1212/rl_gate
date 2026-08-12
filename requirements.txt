@@ -1,15 +1,21 @@
-# TRIAGE-GRPO core + download + tests + TRL-GRPO train stack
+# TRIAGE-GRPO — Python 3.9 compatible train stack (grpo39 backend)
 # Install: pip install -r requirements.txt && pip install -e .
-# Note: install a CUDA build of torch that matches your driver first if needed.
+# Install a CUDA torch wheel matching your driver separately if needed.
+#
+# NOTE: Do NOT rely on trl.GRPOTrainer on Python 3.9 (type union `|` crash).
+# The entry auto-falls back to triage_grpo.grpo39_trainer.
+# Optional: pin transformers away from the broken 4.57.0 py3.9 release.
 
 numpy>=1.24,<2.0
 pyyaml>=6.0
 pytest>=7.4
 huggingface_hub>=0.23
 datasets>=2.19
-transformers>=4.45,<4.58
+transformers>=4.44,<4.57
 accelerate>=0.33
-peft>=0.13,<0.18
-trl>=0.14,<0.20
+peft>=0.11,<0.18
+# trl optional on 3.9 — not required for grpo39 path
+# trl>=0.14,<0.20
 sentencepiece
 protobuf
+torch
