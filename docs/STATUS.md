@@ -18,7 +18,8 @@
 - `mean_outcome≈0` 是因为**模型生成已崩**，不是 reward 误判
 - **现有 completed run 不能当论文有效结果**；须先修 GRPO/TRL 训练实现（KL/reference、loss、decode），再重跑
 
-本仓库 `main` 仍主要为 Phase A + dry-run 编排；集群上的 `trl_train_entry.py` 若未合入，需审查后重写再同步。
+已合入重写版 `scripts/trl_train_entry.py`（官方 TRL GRPOTrainer + KL + 退化熔断）。  
+**旧集群 collapsed checkpoints 全部作废**；须先通过 `docs/TRAINING_COLLAPSE.md` 验收再扩矩阵。
 
 ## 已完成
 

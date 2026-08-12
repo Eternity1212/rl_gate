@@ -40,3 +40,44 @@
 ## 与创新点关系
 
 TRIAGE **公式库仍可用**；塌缩说明 **训练引擎不可信**，不是「四格想法被证伪」。修好后端后应用同一矩阵重做实验。
+
+---
+
+## 修复入口（2026-08-12）
+
+仓库已新增/重写：
+
+- `scripts/trl_train_entry.py` — 基于官方 **`trl.GRPOTrainer`**
+- `scripts/run_train.py` — 优先调用上述入口（不再依赖未接线 veRL）
+
+### 抗塌缩默认
+
+| 项 | 默认 | 环境变量可改 |
+|----|------|----------------|
+| KL β | 0.04 | `TRIAGE_KL_BETA` |
+| LR | 1e-6 | `TRIAGE_LR` |
+| 温度 | 0.7 | `TRIAGE_TEMPERATURE` |
+| 生成质量熔断 | 近窗 ≥60% 空/重复则 abort | 代码内 `DegeneracyMonitor` |
+
+### 验收（修好的定义）
+
+在 GPU 上：
+
+```bash
+pip install -r requirements.txt
+pip install -e .
+# 按机器安装匹配的 torch CUDA 轮子
+
+export TRIAGE_SKIP_ENSURE=1
+./run.sh train --run S2.orm --steps 50
+./run.sh train --run S2.triage --steps 50
+```
+
+通过标准：
+
+1. 不出现 DEGENERACY_ABORT  
+2. `metrics.jsonl` 里 `pct_degenerate` 明显低于 0.6  
+3. 偶发 `mean_outcome > 0`  
+4. 对 checkpoint 抽样生成：**非空、非 WHY 重复、可抽答案**
+
+通过后再重跑 ORM / PAPO / TRIAGE 全量；**旧 collapsed checkpoints 作废。**

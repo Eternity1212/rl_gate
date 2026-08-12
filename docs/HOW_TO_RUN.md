@@ -14,7 +14,7 @@
 | 一键单测 / 四格冒烟 | ✅ `./run.sh unit` 等 |
 | 一键下载模型与数据 | ✅ `./run.sh download`（需网络与 HF 访问） |
 | 一键编排全部实验 | ✅ `./run.sh all` / `./run.sh matrix --stage ...` |
-| **真·GPU GRPO 训练** | ⚠️ 编排与 dry-run 已通；**veRL 实机 trainer 接线仍是 Phase B** |
+| **真·GPU GRPO 训练** | ✅ 走 **TRL** `scripts/trl_train_entry.py`（须先通过塌缩验收，见 TRAINING_COLLAPSE.md） |
 
 没有 GPU / 没装 veRL 时：用 `./run.sh all --dry-run` 可跑通编排、产出 `outputs/*/job.json`。  
 有 GPU 后：装 veRL，去掉 `--dry-run`，并完成 `scripts/verl_train_entry.py` 接线（见下文 Phase B）。

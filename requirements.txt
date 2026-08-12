@@ -1,8 +1,15 @@
-# TRIAGE-GRPO core + download + tests
+# TRIAGE-GRPO core + download + tests + TRL-GRPO train stack
 # Install: pip install -r requirements.txt && pip install -e .
+# Note: install a CUDA build of torch that matches your driver first if needed.
 
-numpy>=1.24
+numpy>=1.24,<2.0
 pyyaml>=6.0
 pytest>=7.4
 huggingface_hub>=0.23
 datasets>=2.19
+transformers>=4.45,<4.58
+accelerate>=0.33
+peft>=0.13,<0.18
+trl>=0.14,<0.20
+sentencepiece
+protobuf

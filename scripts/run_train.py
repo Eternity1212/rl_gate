@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """Training launcher.
 
-Phase B: wires into veRL when available.
-Until then, creates a dry-run job card under outputs/<run_id>/ so the matrix
-orchestration is usable end-to-end.
+Prefers the TRL GRPO entry (``scripts/trl_train_entry.py``). Falls back to a
+dry-run job card when TRL/torch are unavailable or ``--dry-run`` is set.
 """
 
 from __future__ import annotations
@@ -11,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -41,7 +41,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--run", required=True, help="run_id from experiment_registry.yaml")
     parser.add_argument("--steps", type=int, default=None)
-    parser.add_argument("--dry-run", action="store_true", help="force dry-run even if veRL exists")
+    parser.add_argument("--dry-run", action="store_true", help="force dry-run job card only")
     args = parser.parse_args()
 
     registry = load_registry()
@@ -67,43 +67,68 @@ def main() -> int:
         "steps": steps,
         "overrides": run.get("overrides", {}),
         "created_at": datetime.now(timezone.utc).isoformat(),
-        "status": "dry_run",
+        "backend": "trl.GRPOTrainer",
     }
-
-    # If TRIAGE_FORCE_DRYRUN=1 or --dry-run or veRL missing → dry run
-    verl_ok = False
-    try:
-        import verl  # noqa: F401
-
-        verl_ok = True
-    except Exception:
-        verl_ok = False
-
-    force_dry = args.dry_run or os.environ.get("TRIAGE_FORCE_DRYRUN") == "1"
     job_path = out_dir / "job.json"
 
-    if (not verl_ok) or force_dry or run.get("method") == "base_eval":
+    force_dry = args.dry_run or os.environ.get("TRIAGE_FORCE_DRYRUN") == "1"
+    if force_dry or run.get("method") == "base_eval":
         job["status"] = "dry_run"
         job["message"] = (
-            "veRL not installed or dry-run requested. "
-            "Install veRL and re-run without --dry-run for real GPU training. "
-            "See docs/HOW_TO_RUN.md Phase B."
+            "dry-run or base_eval: no GPU train. "
+            "For real train: omit --dry-run and ensure torch/trl/peft installed."
         )
         job_path.write_text(json.dumps(job, indent=2, ensure_ascii=False), encoding="utf-8")
         print(json.dumps(job, indent=2, ensure_ascii=False))
         print(f"Wrote {job_path}")
-        # dry-run is success for orchestration bring-up
         return 0
 
-    # Placeholder for real veRL entry (Phase B implementation)
-    job["status"] = "error"
-    job["message"] = (
-        "veRL detected but trainer entry not yet wired. "
-        "Implement scripts/verl_train_entry.py in Phase B."
-    )
+    # Probe TRL
+    try:
+        import trl  # noqa: F401
+        import torch  # noqa: F401
+        import peft  # noqa: F401
+    except Exception as e:
+        job["status"] = "error"
+        job["message"] = (
+            f"TRL stack not importable ({e}). "
+            "pip install torch transformers trl peft accelerate datasets"
+        )
+        job_path.write_text(json.dumps(job, indent=2, ensure_ascii=False), encoding="utf-8")
+        print(json.dumps(job, indent=2, ensure_ascii=False))
+        return 3
+
+    smoke = str(run.get("stage")) == "smoke" or int(steps) <= 200
+    cfg = run.get("config") or "configs/triage_grpo_1.5b.yaml"
+    cmd = [
+        sys.executable,
+        str(ROOT / "scripts" / "trl_train_entry.py"),
+        "--run-id",
+        args.run,
+        "--config",
+        str(cfg),
+        "--method",
+        str(run.get("method") or "triage"),
+        "--seed",
+        str(run.get("seed", 0)),
+        "--steps",
+        str(steps),
+        "--overrides-json",
+        json.dumps(run.get("overrides") or {}),
+    ]
+    if smoke:
+        cmd.append("--smoke")
+
+    job["status"] = "running"
+    job["command"] = cmd
     job_path.write_text(json.dumps(job, indent=2, ensure_ascii=False), encoding="utf-8")
-    print(json.dumps(job, indent=2, ensure_ascii=False))
-    return 3
+    print("Launching:", " ".join(cmd), flush=True)
+    proc = subprocess.run(cmd, cwd=str(ROOT))
+    job["status"] = "finished" if proc.returncode == 0 else "error"
+    job["returncode"] = proc.returncode
+    job["finished_at"] = datetime.now(timezone.utc).isoformat()
+    job_path.write_text(json.dumps(job, indent=2, ensure_ascii=False), encoding="utf-8")
+    return proc.returncode
 
 
 if __name__ == "__main__":
